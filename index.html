@@ -4,7 +4,7 @@
 <link rel="icon" href="https://img.freepik.com/premium-vector/free-vector-vector-sky-rainbow-cloud_1000823-208649.jpg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agendaa · Groq</title>
+<title>Agendaa · Multi-AI</title>
 <style>
   :root{
     --bg:#f0f2ff;
@@ -39,12 +39,10 @@
     position:relative; overflow-x:hidden;
   }
 
-  /* ---- animated gradient background ---- */
   #meshBg{
     position:fixed; inset:0; z-index:0; pointer-events:none;
     overflow:hidden;
   }
-  /* light mode: soft blobs */
   .mesh-blob{
     position:absolute; border-radius:50%; filter:blur(90px); opacity:0.12;
     animation:blobFloat 12s ease-in-out infinite alternate;
@@ -56,7 +54,6 @@
   .mb3{ width:400px; height:400px; background:#6F8CFF; bottom:0; left:30%; animation-delay:-8s; }
   .mb4{ width:300px; height:300px; background:#C87FFF; bottom:200px; right:200px; animation-delay:-2s; }
 
-  /* dark mode: animated shifting gradient */
   #darkGrad{
     position:absolute; inset:0; opacity:0;
     background: linear-gradient(125deg, #0a0e3a, #0d0533, #00008b, #1a006e, #0a1560, #220066, #0d1a80);
@@ -78,7 +75,6 @@
     100%{ transform:translate(40px,60px) scale(1.12); }
   }
 
-  /* ---- intro ---- */
   #introOverlay{
     position:fixed; inset:0; background:#f0f2ff; z-index:9999;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px;
@@ -103,7 +99,6 @@
   @keyframes glowPulse{ 0%,100%{ transform:scale(1); opacity:.7; } 50%{ transform:scale(1.2); opacity:1; } }
   .intro-text{ color:var(--muted); font-size:13px; letter-spacing:.05em; }
 
-  /* ---- hero header ---- */
   .hero{
     position:relative; z-index:1;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -111,7 +106,6 @@
     text-align:center;
   }
 
-  /* animated ring */
   .ring-wrap{ position:relative; width:130px; height:130px; margin-bottom:24px; }
   .ring-glow{
     position:absolute; inset:-30px; border-radius:50%;
@@ -154,7 +148,6 @@
     font-size:14px; line-height:1.65; color:var(--muted);
   }
 
-  /* ---- controls bar ---- */
   .controlbar{
     position:relative; z-index:1;
     background:var(--panel);
@@ -174,7 +167,7 @@
     border-radius:10px; padding:8px 11px; font-family:var(--sans); font-size:13px;
     outline:none; transition:border-color .15s, box-shadow .15s;
   }
-  input:focus, textarea:focus{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(79,124,255,0.15); }
+  input:focus, textarea:focus, select:focus{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(79,124,255,0.15); }
   textarea{ resize:vertical; }
   .global-task{ width:320px; min-height:38px; }
 
@@ -194,6 +187,23 @@
   button.ghost{ background:transparent; box-shadow:none; }
   button:disabled{ opacity:0.35; cursor:not-allowed; transform:none; box-shadow:none; }
   button.small{ padding:6px 10px; font-size:12px; }
+
+  /* ---- delay toggle ---- */
+  #delayToggle{
+    display:flex; align-items:center; gap:8px;
+    background:var(--panel2); border:1px solid var(--border);
+    border-radius:10px; padding:7px 13px; cursor:pointer;
+    font-size:13px; font-weight:600; color:var(--text);
+    transition:border-color .15s, box-shadow .15s;
+    user-select:none;
+  }
+  #delayToggle:hover{ border-color:var(--blue); box-shadow:0 4px 14px rgba(79,124,255,0.15); transform:translateY(-1px); }
+  #delayToggle .delay-icon{ font-size:16px; }
+  #delayToggle .delay-label{ display:flex; flex-direction:column; gap:1px; }
+  #delayToggle .delay-title{ font-size:12px; font-weight:700; }
+  #delayToggle .delay-sub{ font-size:10px; color:var(--muted); font-weight:400; }
+  #delayToggle.human-mode{ border-color:rgba(155,93,229,0.5); background:rgba(155,93,229,0.08); }
+  #delayToggle.human-mode .delay-title{ color:var(--purple); }
 
   /* ---- theme toggle ---- */
   #themeToggle{
@@ -227,6 +237,24 @@
     box-shadow:0 4px 10px rgba(0,0,0,0.25), 0 20px 48px rgba(0,0,0,0.3),
                0 0 0 1px rgba(79,124,255,0.15);
   }
+
+  /* ---- fullscreen card ---- */
+  .card.fullscreen{
+    position:fixed; inset:0; z-index:500; border-radius:0;
+    transform:none !important;
+    overflow-y:auto;
+    animation:none;
+  }
+  .card.fullscreen:hover{ transform:none !important; box-shadow:none; }
+  .card.fullscreen .log{ height:calc(100vh - 420px); min-height:200px; }
+
+  .fullscreen-overlay{
+    position:fixed; inset:0; z-index:499;
+    background:rgba(0,0,0,0.55); backdrop-filter:blur(4px);
+    animation:fadeIn .2s ease;
+  }
+  @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+
   @keyframes cardIn{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
   .accent-line{ height:3px; width:100%; background:var(--agent-color, var(--grad)); opacity:.6; }
   .accent-line.active{ opacity:1; animation:flow 1.6s linear infinite; background-size:200% 100%; background-image:linear-gradient(90deg,var(--agent-color),rgba(255,255,255,0.7),var(--agent-color)); }
@@ -235,6 +263,7 @@
   .card-head{
     display:flex; align-items:center; gap:10px; padding:12px 14px;
     border-bottom:1px solid var(--border); background:var(--panel2);
+    flex-wrap:nowrap;
   }
   .dot{ width:11px; height:11px; border-radius:50%; flex:none; transition:.2s; }
   .dot.thinking{
@@ -246,14 +275,35 @@
     padding:2px 4px; color:var(--text); flex:1; min-width:0;
   }
   .status-text{ font-size:11px; color:var(--muted); white-space:nowrap; }
-  .remove-btn{ border:none; background:transparent; color:var(--muted); font-size:16px; line-height:1; padding:2px 6px; box-shadow:none; }
-  .remove-btn:hover{ color:var(--danger); background:transparent; transform:none; box-shadow:none; border-color:transparent; }
+
+  .card-head-btns{ display:flex; gap:4px; align-items:center; flex:none; }
+  .icon-btn{
+    border:none; background:transparent; color:var(--muted); font-size:15px;
+    line-height:1; padding:3px 6px; box-shadow:none; cursor:pointer;
+    border-radius:6px; transition:color .15s, background .15s;
+  }
+  .icon-btn:hover{ color:var(--blue); background:rgba(79,124,255,0.1); transform:none; box-shadow:none; border-color:transparent; }
+  .remove-btn{ color:var(--muted); }
+  .remove-btn:hover{ color:var(--danger) !important; background:rgba(224,64,90,0.1) !important; }
 
   .card-body{ padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
   .row2{ display:flex; gap:8px; }
   .row2 .field{ flex:1; min-width:0; }
   textarea.task{ min-height:54px; }
   .btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
+
+  /* ---- API provider row ---- */
+  .api-row{ display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
+  .api-row .field{ flex:1; min-width:0; }
+  select.provider-select{ padding:8px 11px; }
+
+  /* ---- model row with manual entry ---- */
+  .model-row{ display:flex; gap:6px; align-items:flex-end; }
+  .model-row .field{ flex:1; min-width:0; }
+  .model-manual-toggle{
+    padding:8px 10px; font-size:11px; border-radius:10px; flex:none;
+    white-space:nowrap; font-weight:600;
+  }
 
   .log{
     background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:11px;
@@ -282,7 +332,6 @@
     border:1px dashed var(--border); border-radius:16px; padding:40px;
     text-align:center; color:var(--muted); grid-column:1/-1; background:var(--panel);
   }
-
 
   /* ---- special model panels ---- */
   .special-panel{
@@ -345,12 +394,11 @@
     </div>
   </div>
   <h1 class="hero-title">Agendaa</h1>
-  <p class="hero-sub">Groq · несколько независимых ИИ-агентов</p>
+  <p class="hero-sub">Multi-AI · несколько независимых ИИ-агентов</p>
   <p class="hero-desc">
-    У каждого агента — свой Groq API-ключ, своя модель и своя задача. Можно запустить всех одной общей задачей
-    или дать каждому отдельную. Агенты умеют выполнять JS-код и могут просить друг друга о помощи
-    (инструмент «написать другому агенту»). Ключи и история хранятся только в памяти браузера
-    и никуда не отправляются, кроме прямых запросов к api.groq.com.
+    У каждого агента — свой API-ключ, провайдер (Groq / OpenAI / Anthropic / Custom), своя модель и своя задача.
+    Можно запустить всех одной общей задачей или дать каждому отдельную.
+    Ключи и история хранятся только в памяти браузера.
   </p>
 </div>
 
@@ -364,10 +412,20 @@
     <button class="primary" id="startAllBtn">🚀 Запустить всех</button>
     <button class="danger" id="stopAllBtn">⏸ Остановить всех</button>
     <div class="field">
-      <label>Общий API-ключ (Groq)</label>
-      <input id="globalKey" type="password" placeholder="gsk_..." style="width:210px">
+      <label>Общий API-ключ</label>
+      <input id="globalKey" type="password" placeholder="sk-... / gsk_..." style="width:210px">
     </div>
     <button id="applyKeyBtn">Применить ключ ко всем</button>
+
+    <!-- DELAY TOGGLE -->
+    <div id="delayToggle" title="Переключить задержку между ответами">
+      <span class="delay-icon">⚡</span>
+      <div class="delay-label">
+        <span class="delay-title" id="delayTitle">Компьютер</span>
+        <span class="delay-sub" id="delaySub">без задержки</span>
+      </div>
+    </div>
+
     <button id="addAgentBtn">+ Добавить агента</button>
   </div>
 </div>
@@ -375,15 +433,16 @@
 <div class="board" id="board"></div>
 
 <p class="footer-note">
-  Подсказка: если запрос к Groq не проходит из-за ошибки сети/CORS — попробуй другой браузер или временно
-  отключить блокировщики запросов. Файл полностью статический, работает прямо из браузера, без сервера.
+  Поддерживаемые провайдеры: Groq (api.groq.com), OpenAI (api.openai.com), Anthropic (api.anthropic.com), а также любой Custom OpenAI-совместимый эндпоинт.
+  Файл полностью статический, работает прямо из браузера, без сервера.
 </p>
 
 <button id="themeToggle" title="Переключить тему">🌙</button>
 
 <script>
 const PALETTE = ['#4F7CFF','#9B5DE5','#FF6F91','#1E9E8B','#E08B1D','#3FA85E','#6F86FF','#C0469B'];
-const MODEL_SUGGESTIONS = [
+
+const MODEL_SUGGESTIONS_GROQ = [
   'llama-3.3-70b-versatile',
   'llama-3.1-8b-instant',
   'meta-llama/llama-4-scout-17b-16e-instruct',
@@ -401,6 +460,21 @@ const MODEL_SUGGESTIONS = [
   'canopylabs/orpheus-v1-english',
   'whisper-large-v3'
 ];
+const MODEL_SUGGESTIONS_OPENAI = [
+  'gpt-4o','gpt-4o-mini','gpt-4-turbo','gpt-3.5-turbo','o1','o1-mini','o3-mini'
+];
+const MODEL_SUGGESTIONS_ANTHROPIC = [
+  'claude-opus-4-5','claude-sonnet-4-5','claude-haiku-4-5',
+  'claude-3-7-sonnet-latest','claude-3-5-haiku-latest'
+];
+
+const PROVIDERS = {
+  groq:      { label:'Groq',       url:'https://api.groq.com/openai/v1/chat/completions',       models: MODEL_SUGGESTIONS_GROQ,      keyPlaceholder:'gsk_...' },
+  openai:    { label:'OpenAI',     url:'https://api.openai.com/v1/chat/completions',             models: MODEL_SUGGESTIONS_OPENAI,    keyPlaceholder:'sk-...' },
+  anthropic: { label:'Anthropic',  url:'https://api.anthropic.com/v1/messages',                  models: MODEL_SUGGESTIONS_ANTHROPIC, keyPlaceholder:'sk-ant-...' },
+  custom:    { label:'Custom',     url:'',                                                        models: [],                          keyPlaceholder:'your-key' },
+};
+
 const WHISPER_MODEL = 'whisper-large-v3';
 const CANOPY_MODELS = ['canopylabs/orpheus-arabic-saudi','canopylabs/orpheus-v1-english'];
 const MAX_TOOL_ITERS = 12;
@@ -408,18 +482,55 @@ const MAX_TOOL_ITERS = 12;
 let agentSeq = 0;
 const agents = [];
 
+// ---- DELAY STATE ----
+let humanMode = false; // false = computer (no delay), true = human (1s delay)
+const delayToggleEl = document.getElementById('delayToggle');
+const delayTitleEl = document.getElementById('delayTitle');
+const delaySubEl = document.getElementById('delaySub');
+delayToggleEl.addEventListener('click', ()=>{
+  humanMode = !humanMode;
+  delayToggleEl.classList.toggle('human-mode', humanMode);
+  delayToggleEl.querySelector('.delay-icon').textContent = humanMode ? '🧠' : '⚡';
+  delayTitleEl.textContent = humanMode ? 'Человек' : 'Компьютер';
+  delaySubEl.textContent = humanMode ? '1 сек между ответами' : 'без задержки';
+});
+
+// ---- fullscreen overlay ----
+let fullscreenAgent = null;
+let overlayEl = null;
+
+function openFullscreen(agent){
+  if(fullscreenAgent) closeFullscreen();
+  fullscreenAgent = agent;
+  overlayEl = document.createElement('div');
+  overlayEl.className = 'fullscreen-overlay';
+  overlayEl.addEventListener('click', closeFullscreen);
+  document.body.appendChild(overlayEl);
+  agent.els.card.classList.add('fullscreen');
+  agent.els.expandBtn.textContent = '⊡';
+  agent.els.expandBtn.title = 'Уменьшить';
+}
+function closeFullscreen(){
+  if(!fullscreenAgent) return;
+  fullscreenAgent.els.card.classList.remove('fullscreen');
+  fullscreenAgent.els.expandBtn.textContent = '⛶';
+  fullscreenAgent.els.expandBtn.title = 'На весь экран';
+  fullscreenAgent = null;
+  if(overlayEl){ overlayEl.remove(); overlayEl = null; }
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && fullscreenAgent) closeFullscreen(); });
+
 const board = document.getElementById('board');
-const datalistId = 'model-suggestions';
-(function initDatalist(){
+
+// datalist per provider (we'll update per-card)
+const datalistMap = {};
+Object.keys(PROVIDERS).forEach(p=>{
   const dl = document.createElement('datalist');
-  dl.id = datalistId;
-  MODEL_SUGGESTIONS.forEach(m=>{
-    const opt = document.createElement('option');
-    opt.value = m;
-    dl.appendChild(opt);
-  });
+  dl.id = 'dl-'+p;
+  (PROVIDERS[p].models || []).forEach(m=>{ const o=document.createElement('option'); o.value=m; dl.appendChild(o); });
   document.body.appendChild(dl);
-})();
+  datalistMap[p] = dl.id;
+});
 
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
@@ -428,7 +539,8 @@ function createAgent(name){
   const color = PALETTE[(agentSeq-1) % PALETTE.length];
   const agent = {
     id:'a'+agentSeq, name: name || ('Агент '+agentSeq),
-    key:'', model:'', color,
+    key:'', model:'', provider:'groq', customUrl:'',
+    color,
     history:[], inbox:[], running:false, pendingInitialTask:null, els:{}
   };
   agents.push(agent);
@@ -440,29 +552,51 @@ function renderAgent(agent){
   const card = document.createElement('div');
   card.className = 'card';
   card.style.setProperty('--agent-color', agent.color);
+
+  const providerOptions = Object.keys(PROVIDERS).map(p=>
+    `<option value="${p}"${p===agent.provider?' selected':''}>${PROVIDERS[p].label}</option>`
+  ).join('');
+
   card.innerHTML = `
     <div class="accent-line"></div>
     <div class="card-head">
       <div class="dot" style="background:${agent.color}"></div>
       <input class="name-input" value="${escapeAttr(agent.name)}" />
       <span class="status-text">ожидание</span>
-      <button class="remove-btn" title="Удалить агента">✕</button>
+      <div class="card-head-btns">
+        <button class="icon-btn expand-btn" title="На весь экран">⛶</button>
+        <button class="icon-btn remove-btn" title="Удалить агента">✕</button>
+      </div>
     </div>
     <div class="card-body">
-      <div class="row2">
-        <div class="field">
-          <label>API-ключ (Groq)</label>
-          <input type="password" placeholder="gsk_..." />
+      <!-- API provider + key row -->
+      <div class="api-row">
+        <div class="field" style="flex:0 0 auto">
+          <label>Провайдер</label>
+          <select class="provider-select">${providerOptions}</select>
         </div>
+        <div class="field">
+          <label>API-ключ</label>
+          <input type="password" class="keyInput" placeholder="${PROVIDERS[agent.provider].keyPlaceholder}" />
+        </div>
+      </div>
+      <!-- custom url row (hidden unless custom) -->
+      <div class="field custom-url-row" style="display:none">
+        <label>Custom endpoint URL</label>
+        <input type="text" class="customUrlInput" placeholder="https://your-api.com/v1/chat/completions" />
+      </div>
+      <!-- model row -->
+      <div class="model-row">
         <div class="field">
           <label>Модель</label>
-          <input list="${datalistId}" placeholder="llama-3.3-70b-versatile" class="modelInput" />
+          <input list="dl-${agent.provider}" placeholder="llama-3.3-70b-versatile" class="modelInput" />
         </div>
+        <button class="model-manual-toggle small ghost" title="Вписать модель вручную">✏️ Своя</button>
       </div>
       <div class="special-section"></div>
       <div class="field chat-task-field">
         <label>Задача / системная роль этого агента</label>
-        <textarea class="task" placeholder="Например: ты отвечаешь за анализ данных. Жди задачу от коллег или пользователя."></textarea>
+        <textarea class="task" placeholder="Например: ты отвечаешь за анализ данных."></textarea>
       </div>
       <div class="btn-row chat-btns">
         <button class="primary startBtn">▶ Старт</button>
@@ -483,9 +617,14 @@ function renderAgent(agent){
   agent.els.dot = card.querySelector('.dot');
   agent.els.nameInput = card.querySelector('.name-input');
   agent.els.statusText = card.querySelector('.status-text');
+  agent.els.expandBtn = card.querySelector('.expand-btn');
   agent.els.removeBtn = card.querySelector('.remove-btn');
-  agent.els.keyInput = card.querySelectorAll('input')[1];
+  agent.els.providerSelect = card.querySelector('.provider-select');
+  agent.els.keyInput = card.querySelector('.keyInput');
+  agent.els.customUrlRow = card.querySelector('.custom-url-row');
+  agent.els.customUrlInput = card.querySelector('.customUrlInput');
   agent.els.modelInput = card.querySelector('.modelInput');
+  agent.els.modelManualToggle = card.querySelector('.model-manual-toggle');
   agent.els.specialSection = card.querySelector('.special-section');
   agent.els.chatTaskField = card.querySelector('.chat-task-field');
   agent.els.chatBtns = card.querySelector('.chat-btns');
@@ -499,19 +638,59 @@ function renderAgent(agent){
   agent.els.msgInput = card.querySelector('.msgInput');
   agent.els.sendMsgBtn = card.querySelector('.sendMsgBtn');
 
+  // events
   agent.els.nameInput.addEventListener('input', e=>{ agent.name = e.target.value.trim() || agent.name; });
   agent.els.keyInput.addEventListener('input', e=>{ agent.key = e.target.value.trim(); });
+  agent.els.customUrlInput.addEventListener('input', e=>{ agent.customUrl = e.target.value.trim(); });
+
+  agent.els.providerSelect.addEventListener('change', e=>{
+    agent.provider = e.target.value;
+    const prov = PROVIDERS[agent.provider];
+    agent.els.keyInput.placeholder = prov.keyPlaceholder;
+    // update datalist
+    agent.els.modelInput.setAttribute('list', 'dl-'+agent.provider);
+    agent.els.modelInput.value = '';
+    agent.model = '';
+    agent.els.customUrlRow.style.display = agent.provider==='custom' ? '' : 'none';
+    updateSpecialPanel(agent);
+  });
+
+  // model manual toggle
+  let manualMode = false;
+  agent.els.modelManualToggle.addEventListener('click', ()=>{
+    manualMode = !manualMode;
+    if(manualMode){
+      agent.els.modelInput.removeAttribute('list');
+      agent.els.modelInput.placeholder = 'Введите название модели вручную';
+      agent.els.modelManualToggle.textContent = '📋 Список';
+      agent.els.modelManualToggle.title = 'Выбрать из списка';
+    } else {
+      agent.els.modelInput.setAttribute('list', 'dl-'+agent.provider);
+      agent.els.modelInput.placeholder = 'llama-3.3-70b-versatile';
+      agent.els.modelManualToggle.textContent = '✏️ Своя';
+      agent.els.modelManualToggle.title = 'Вписать модель вручную';
+    }
+  });
+
   agent.els.modelInput.addEventListener('input', e=>{
     agent.model = e.target.value.trim();
     updateSpecialPanel(agent);
   });
+
+  agent.els.expandBtn.addEventListener('click', ()=>{
+    if(fullscreenAgent === agent) closeFullscreen();
+    else openFullscreen(agent);
+  });
+
   agent.els.removeBtn.addEventListener('click', ()=>{
+    if(fullscreenAgent === agent) closeFullscreen();
     agent.running = false;
     card.remove();
     const idx = agents.indexOf(agent);
     if(idx>-1) agents.splice(idx,1);
     maybeShowEmpty();
   });
+
   agent.els.startBtn.addEventListener('click', ()=>startAgent(agent, agent.els.taskInput.value.trim()));
   agent.els.stopBtn.addEventListener('click', ()=>stopAgent(agent));
   agent.els.clearBtn.addEventListener('click', ()=>{ agent.els.log.innerHTML=''; });
@@ -519,13 +698,12 @@ function renderAgent(agent){
     const v = agent.els.msgInput.value.trim();
     if(!v) return;
     agent.inbox.push({from:'Пользователь', text:v});
-    logMsg(agent,'user','(вручную во время работы): '+v);
+    logMsg(agent,'user','(вручную): '+v);
     agent.els.msgInput.value='';
-    if(!agent.running) logMsg(agent,'sys','Агент не запущен — сообщение будет обработано после старта.');
+    if(!agent.running) logMsg(agent,'sys','Агент не запущен — сообщение в очереди.');
   });
   maybeShowEmpty();
 }
-
 
 function isWhisper(model){ return model === WHISPER_MODEL; }
 function isCanopy(model){ return CANOPY_MODELS.includes(model); }
@@ -537,7 +715,6 @@ function updateSpecialPanel(agent){
   const sec = agent.els.specialSection;
   const isW = isWhisper(m);
   const isC = isCanopy(m);
-  // show/hide chat parts
   agent.els.chatTaskField.style.display = (isW||isC)?'none':'';
   agent.els.chatBtns.style.display = (isW||isC)?'none':'';
   agent.els.chatLog.style.display = (isW||isC)?'none':'';
@@ -566,7 +743,7 @@ function updateSpecialPanel(agent){
       <div class="special-panel canopy-panel">
         <div class="panel-title">🔊 Orpheus TTS — синтез речи</div>
         <label>Текст для озвучивания</label>
-        <textarea id="canopyText_${agent.id}" style="min-height:64px;font-size:13px" placeholder="Введите текст для синтеза речи..."></textarea>
+        <textarea id="canopyText_${agent.id}" style="min-height:64px;font-size:13px" placeholder="Введите текст..."></textarea>
         <div class="canopy-controls">
           <label>Голос</label>
           <div class="canopy-voices" id="canopyVoices_${agent.id}">${voices}</div>
@@ -609,9 +786,9 @@ function setupWhisper(agent){
 
   runBtn.addEventListener('click', async ()=>{
     if(!audioFile) return;
-    if(!agent.key){ alert('Укажи API-ключ Groq для этого агента.'); return; }
+    if(!agent.key){ alert('Укажи API-ключ.'); return; }
     runBtn.disabled = true;
-    resultEl.textContent = 'Отправляю файл на Groq...';
+    resultEl.textContent = 'Отправляю файл…';
     const fd = new FormData();
     fd.append('file', audioFile);
     fd.append('model', WHISPER_MODEL);
@@ -624,11 +801,8 @@ function setupWhisper(agent){
       });
       if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+': '+t.slice(0,300)); }
       const data = await res.json();
-      const text = data.text || '(пустой ответ)';
-      resultEl.textContent = text;
-    }catch(e){
-      resultEl.textContent = 'Ошибка: '+e.message;
-    }
+      resultEl.textContent = data.text || '(пустой ответ)';
+    }catch(e){ resultEl.textContent = 'Ошибка: '+e.message; }
     runBtn.disabled = false;
   });
 }
@@ -652,37 +826,25 @@ function setupCanopy(agent){
   speedInput.addEventListener('input', ()=>{ speedVal.textContent = parseFloat(speedInput.value).toFixed(1)+'×'; });
 
   runBtn.addEventListener('click', async ()=>{
-    if(!agent.key){ alert('Укажи API-ключ Groq.'); return; }
+    if(!agent.key){ alert('Укажи API-ключ.'); return; }
     const textEl = document.getElementById('canopyText_'+id);
     const text = textEl.value.trim();
-    if(!text){ alert('Введи текст для синтеза.'); return; }
+    if(!text){ alert('Введи текст.'); return; }
     runBtn.disabled = true;
     resultEl.innerHTML = '<div style="color:var(--muted);font-size:12px">Генерирую аудио...</div>';
     try{
-      const body = {
-        model: agent.model,
-        input: text,
-        voice: selectedVoice,
-        speed: parseFloat(speedInput.value),
-        response_format: 'mp3'
-      };
       const res = await fetch('https://api.groq.com/openai/v1/audio/speech',{
         method:'POST',
         headers:{'Authorization':'Bearer '+agent.key,'Content-Type':'application/json'},
-        body: JSON.stringify(body)
+        body: JSON.stringify({ model:agent.model, input:text, voice:selectedVoice, speed:parseFloat(speedInput.value), response_format:'mp3' })
       });
       if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+': '+t.slice(0,300)); }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      resultEl.innerHTML = `
-        <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Результат</label>
-        <div class="canopy-result">
-          <audio controls src="${url}"></audio>
-          <a href="${url}" download="orpheus-tts.mp3" style="display:block;margin-top:6px;font-size:12px;color:var(--blue)">⬇ Скачать mp3</a>
-        </div>`;
-    }catch(e){
-      resultEl.innerHTML = '<div style="color:var(--danger);font-size:12px">Ошибка: '+escapeHtml(e.message)+'</div>';
-    }
+      resultEl.innerHTML = `<label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Результат</label>
+        <div class="canopy-result"><audio controls src="${url}"></audio>
+        <a href="${url}" download="orpheus-tts.mp3" style="display:block;margin-top:6px;font-size:12px;color:var(--blue)">⬇ Скачать mp3</a></div>`;
+    }catch(e){ resultEl.innerHTML = '<div style="color:var(--danger);font-size:12px">Ошибка: '+escapeHtml(e.message)+'</div>'; }
     runBtn.disabled = false;
   });
 }
@@ -758,19 +920,97 @@ function buildTools(){
   ];
 }
 
-async function callGroq(agent){
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+// ---- API caller — supports Groq, OpenAI, Anthropic, Custom ----
+async function callAPI(agent){
+  const prov = agent.provider;
+  const provDef = PROVIDERS[prov];
+  const url = prov === 'custom' ? agent.customUrl : provDef.url;
+
+  if(!url){ throw new Error('Укажи Custom endpoint URL.'); }
+
+  // Anthropic has a different API format
+  if(prov === 'anthropic'){
+    return callAnthropic(agent, url);
+  }
+
+  // OpenAI-compatible (Groq, OpenAI, Custom)
+  const res = await fetch(url, {
     method:'POST',
     headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+agent.key },
     body: JSON.stringify({
-      model: agent.model, messages: agent.history,
-      tools: buildTools(), tool_choice:'auto', temperature:0.6
+      model: agent.model,
+      messages: agent.history,
+      tools: buildTools(),
+      tool_choice:'auto',
+      temperature:0.6
     })
   });
   if(!res.ok){ const t = await res.text().catch(()=>''); throw new Error('HTTP '+res.status+': '+t.slice(0,300)); }
   const data = await res.json();
-  if(!data.choices || !data.choices[0]) throw new Error('Пустой ответ от Groq.');
+  if(!data.choices || !data.choices[0]) throw new Error('Пустой ответ от API.');
   return data.choices[0].message;
+}
+
+async function callAnthropic(agent, url){
+  // Convert OpenAI-style history to Anthropic format
+  const systemMsg = agent.history.find(m=>m.role==='system');
+  const msgs = agent.history.filter(m=>m.role!=='system').map(m=>{
+    if(m.role==='tool'){
+      return { role:'user', content:[{ type:'tool_result', tool_use_id:m.tool_call_id, content:m.content }] };
+    }
+    if(m.tool_calls){
+      return { role:'assistant', content: m.tool_calls.map(tc=>({
+        type:'tool_use', id:tc.id, name:tc.function.name,
+        input: JSON.parse(tc.function.arguments||'{}')
+      })) };
+    }
+    return { role: m.role, content: m.content };
+  });
+
+  const anthropicTools = buildTools().map(t=>({
+    name: t.function.name,
+    description: t.function.description,
+    input_schema: t.function.parameters
+  }));
+
+  const body = {
+    model: agent.model,
+    max_tokens: 2048,
+    messages: msgs,
+    tools: anthropicTools,
+    system: systemMsg ? systemMsg.content : undefined
+  };
+  if(!body.system) delete body.system;
+
+  const res = await fetch(url, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key': agent.key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){ const t=await res.text().catch(()=>''); throw new Error('HTTP '+res.status+': '+t.slice(0,300)); }
+  const data = await res.json();
+
+  // Convert Anthropic response to OpenAI-style message
+  const textBlocks = data.content.filter(c=>c.type==='text').map(c=>c.text).join('');
+  const toolBlocks = data.content.filter(c=>c.type==='tool_use');
+
+  if(toolBlocks.length){
+    return {
+      role:'assistant',
+      content: textBlocks || null,
+      tool_calls: toolBlocks.map(tb=>({
+        id: tb.id,
+        type:'function',
+        function:{ name:tb.name, arguments: JSON.stringify(tb.input) }
+      }))
+    };
+  }
+  return { role:'assistant', content: textBlocks };
 }
 
 const WORKER_SRC = `
@@ -848,12 +1088,16 @@ async function execTool(agent, tc){
 }
 
 async function stepAgent(agent){
+  // Human mode delay before each response
+  if(humanMode){ await sleep(1000); }
+  if(!agent.running) return;
+
   let iterations = 0;
   while(iterations < MAX_TOOL_ITERS && agent.running){
     iterations++;
     setStatus(agent,'thinking');
     let msg;
-    try{ msg = await callGroq(agent); }
+    try{ msg = await callAPI(agent); }
     catch(e){ setStatus(agent,'error'); logMsg(agent,'error',e.message); return; }
     if(!agent.running) return;
     if(msg.tool_calls && msg.tool_calls.length){
@@ -862,6 +1106,8 @@ async function stepAgent(agent){
         const result = await execTool(agent,tc);
         agent.history.push({ role:'tool', tool_call_id:tc.id, content:String(result) });
       }
+      // Human mode delay between tool iterations too
+      if(humanMode){ await sleep(1000); if(!agent.running) return; }
       continue;
     } else {
       agent.history.push({ role:'assistant', content:msg.content });
@@ -897,7 +1143,7 @@ function startAgent(agent, initialTask){
   if(agent.history.length===0) agent.history.push({ role:'system', content:buildSystemPrompt(agent) });
   if(initialTask) agent.pendingInitialTask = initialTask;
   setStatus(agent,'idle');
-  logMsg(agent,'sys','Агент запущен.');
+  logMsg(agent,'sys','Агент запущен. ['+PROVIDERS[agent.provider].label+' / '+agent.model+']');
   updateButtons(agent);
   runAgentLoop(agent);
 }
