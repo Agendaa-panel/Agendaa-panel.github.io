@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<link rel="icon" href="https://w7.pngwing.com/pngs/638/88/png-transparent-home-icon-computer-icons-home-page-favicon-website-website-free-files-miscellaneous-web-design-web-navigation.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agendaa · Groq</title>
+<style>
+  :root{
+    --bg:#f0f2ff;
+    --bg2:#e8eaff;
+    --panel:#ffffff;
+    --panel2:#f3f4fa;
+    --border:#dde0f5;
+    --text:#1B1D29;
+    --muted:#7A7F8E;
+    --danger:#E0405A;
+    --blue:#4F7CFF;
+    --purple:#9B5DE5;
+    --grad: linear-gradient(135deg, var(--blue), var(--purple));
+    --mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    color-scheme: light;
+  }
+  body.dark-mode{
+    --bg:#07081a;
+    --bg2:#0d1030;
+    --panel:#111430;
+    --panel2:#171b3a;
+    --border:#2a2f60;
+    --text:#eef0ff;
+    --muted:#7a80a8;
+    color-scheme: dark;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--sans);
+    min-height:100vh; transition:color .3s;
+    position:relative; overflow-x:hidden;
+  }
+
+  /* ---- animated gradient background ---- */
+  #meshBg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    overflow:hidden;
+  }
+  /* light mode: soft blobs */
+  .mesh-blob{
+    position:absolute; border-radius:50%; filter:blur(90px); opacity:0.12;
+    animation:blobFloat 12s ease-in-out infinite alternate;
+    transition:opacity .4s;
+  }
+  body.dark-mode .mesh-blob{ opacity:0; }
+  .mb1{ width:600px; height:600px; background:#4F7CFF; top:-100px; left:-150px; animation-delay:0s; }
+  .mb2{ width:500px; height:500px; background:#9B5DE5; top:200px; right:-100px; animation-delay:-4s; }
+  .mb3{ width:400px; height:400px; background:#6F8CFF; bottom:0; left:30%; animation-delay:-8s; }
+  .mb4{ width:300px; height:300px; background:#C87FFF; bottom:200px; right:200px; animation-delay:-2s; }
+
+  /* dark mode: animated shifting gradient */
+  #darkGrad{
+    position:absolute; inset:0; opacity:0;
+    background: linear-gradient(125deg, #0a0e3a, #0d0533, #00008b, #1a006e, #0a1560, #220066, #0d1a80);
+    background-size:400% 400%;
+    animation:gradShift 8s ease infinite;
+    transition:opacity .5s;
+  }
+  body.dark-mode #darkGrad{ opacity:1; }
+
+  @keyframes gradShift{
+    0%  { background-position: 0% 50%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 0% 100%; }
+    100%{ background-position: 0% 50%; }
+  }
+  @keyframes blobFloat{
+    0%{ transform:translate(0,0) scale(1); }
+    100%{ transform:translate(40px,60px) scale(1.12); }
+  }
+
+  /* ---- intro ---- */
+  #introOverlay{
+    position:fixed; inset:0; background:#f0f2ff; z-index:9999;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px;
+    transition:opacity .6s ease, visibility .6s ease;
+  }
+  #introOverlay.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+  .orb-wrap{ position:relative; width:110px; height:110px; }
+  .orb-glow{
+    position:absolute; inset:-34px; border-radius:50%;
+    background:radial-gradient(circle, rgba(124,93,229,0.4), transparent 70%);
+    filter:blur(18px); animation:glowPulse 2s ease-in-out infinite;
+  }
+  .orb{
+    position:absolute; inset:0; border-radius:50%;
+    background:
+      radial-gradient(circle at 32% 28%, rgba(255,255,255,0.85), rgba(255,255,255,0) 42%),
+      conic-gradient(from 0deg, #6F8CFF, #9B5DE5, #4F7CFF, #C87FFF, #6F8CFF);
+    animation:spin 1.3s linear infinite;
+    box-shadow:0 20px 60px rgba(79,124,255,0.4), inset 0 0 26px rgba(255,255,255,0.2);
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @keyframes glowPulse{ 0%,100%{ transform:scale(1); opacity:.7; } 50%{ transform:scale(1.2); opacity:1; } }
+  .intro-text{ color:var(--muted); font-size:13px; letter-spacing:.05em; }
+
+  /* ---- hero header ---- */
+  .hero{
+    position:relative; z-index:1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:60px 28px 48px;
+    text-align:center;
+  }
+
+  /* animated ring */
+  .ring-wrap{ position:relative; width:130px; height:130px; margin-bottom:24px; }
+  .ring-glow{
+    position:absolute; inset:-30px; border-radius:50%;
+    background:radial-gradient(circle, rgba(155,93,229,0.45), transparent 70%);
+    filter:blur(22px); animation:glowPulse 3s ease-in-out infinite;
+  }
+  .ring{
+    position:absolute; inset:0; border-radius:50%;
+    background:
+      radial-gradient(circle at 30% 26%, rgba(255,255,255,0.75), rgba(255,255,255,0) 45%),
+      conic-gradient(from 0deg, #4F7CFF 0%, #9B5DE5 30%, #C87FFF 55%, #6F8CFF 75%, #4F7CFF 100%);
+    animation:spin 3.5s linear infinite;
+    box-shadow:0 0 0 3px rgba(79,124,255,0.2), 0 24px 60px rgba(155,93,229,0.45);
+  }
+  .ring-inner{
+    position:absolute; inset:18px; border-radius:50%; background:var(--bg);
+    transition:background .4s;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: inset 0 2px 12px rgba(79,124,255,0.15);
+  }
+  .ring-inner-dot{
+    width:16px; height:16px; border-radius:50%;
+    background:conic-gradient(from 0deg,#4F7CFF,#9B5DE5,#4F7CFF);
+    animation:spin .9s linear infinite;
+    box-shadow:0 0 10px rgba(155,93,229,0.6);
+  }
+
+  .hero-title{
+    font-size:52px; font-weight:800; letter-spacing:-1px; line-height:1;
+    background:linear-gradient(135deg, #6F8CFF 0%, #C87FFF 50%, #9B5DE5 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    margin-bottom:10px;
+  }
+  .hero-sub{
+    font-size:13px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:20px;
+  }
+  .hero-desc{
+    max-width:620px;
+    font-size:14px; line-height:1.65; color:var(--muted);
+  }
+
+  /* ---- controls bar ---- */
+  .controlbar{
+    position:relative; z-index:1;
+    background:var(--panel);
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    padding:20px 28px;
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+  }
+  .global-row{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;
+  }
+  .field{ display:flex; flex-direction:column; gap:4px; }
+  .field label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+  input, textarea, select{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    border-radius:10px; padding:8px 11px; font-family:var(--sans); font-size:13px;
+    outline:none; transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus, textarea:focus{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(79,124,255,0.15); }
+  textarea{ resize:vertical; }
+  .global-task{ width:320px; min-height:38px; }
+
+  button{
+    background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    padding:9px 15px; border-radius:10px; font-size:13px; cursor:pointer; font-family:var(--sans);
+    font-weight:600;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s, border-color .15s;
+  }
+  button:hover{ transform:translateY(-1px); box-shadow:0 4px 14px rgba(79,124,255,0.15); border-color:var(--blue); }
+  button.primary{
+    background:linear-gradient(135deg,#4F7CFF,#9B5DE5); border:none; color:#fff;
+    box-shadow:0 4px 18px rgba(79,124,255,0.35);
+  }
+  button.primary:hover{ box-shadow:0 6px 24px rgba(155,93,229,0.5); transform:translateY(-2px); }
+  button.danger{ background:rgba(224,64,90,0.12); border-color:rgba(224,64,90,0.3); color:#E0405A; }
+  button.ghost{ background:transparent; box-shadow:none; }
+  button:disabled{ opacity:0.35; cursor:not-allowed; transform:none; box-shadow:none; }
+  button.small{ padding:6px 10px; font-size:12px; }
+
+  /* ---- theme toggle ---- */
+  #themeToggle{
+    position:fixed; bottom:24px; right:24px; z-index:100;
+    width:48px; height:48px; border-radius:50%; padding:0;
+    background:var(--panel);
+    border:1px solid var(--border);
+    font-size:20px; cursor:pointer;
+    box-shadow:0 4px 20px rgba(0,0,0,0.3);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .2s, box-shadow .2s, background .3s;
+  }
+  #themeToggle:hover{ transform:translateY(-2px) scale(1.08); box-shadow:0 8px 28px rgba(79,124,255,0.35); }
+
+  /* ---- board ---- */
+  .board{
+    position:relative; z-index:1;
+    padding:24px 28px 80px;
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(360px,1fr)); gap:18px;
+    align-items:start;
+  }
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px;
+    overflow:hidden; display:flex; flex-direction:column;
+    box-shadow:0 2px 4px rgba(0,0,0,0.2), 0 12px 32px rgba(0,0,0,0.2);
+    transition:transform .18s ease, box-shadow .18s ease;
+    animation:cardIn .35s ease both;
+  }
+  .card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 4px 10px rgba(0,0,0,0.25), 0 20px 48px rgba(0,0,0,0.3),
+               0 0 0 1px rgba(79,124,255,0.15);
+  }
+  @keyframes cardIn{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:translateY(0); } }
+  .accent-line{ height:3px; width:100%; background:var(--agent-color, var(--grad)); opacity:.6; }
+  .accent-line.active{ opacity:1; animation:flow 1.6s linear infinite; background-size:200% 100%; background-image:linear-gradient(90deg,var(--agent-color),rgba(255,255,255,0.7),var(--agent-color)); }
+  @keyframes flow{ 0%{ background-position:0% 0; } 100%{ background-position:200% 0; } }
+
+  .card-head{
+    display:flex; align-items:center; gap:10px; padding:12px 14px;
+    border-bottom:1px solid var(--border); background:var(--panel2);
+  }
+  .dot{ width:11px; height:11px; border-radius:50%; flex:none; transition:.2s; }
+  .dot.thinking{
+    background:conic-gradient(from 0deg, var(--blue), var(--purple), var(--blue)) !important;
+    animation:spin .9s linear infinite;
+  }
+  .name-input{
+    background:transparent; border:none; font-weight:700; font-size:14px;
+    padding:2px 4px; color:var(--text); flex:1; min-width:0;
+  }
+  .status-text{ font-size:11px; color:var(--muted); white-space:nowrap; }
+  .remove-btn{ border:none; background:transparent; color:var(--muted); font-size:16px; line-height:1; padding:2px 6px; box-shadow:none; }
+  .remove-btn:hover{ color:var(--danger); background:transparent; transform:none; box-shadow:none; border-color:transparent; }
+
+  .card-body{ padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+  .row2{ display:flex; gap:8px; }
+  .row2 .field{ flex:1; min-width:0; }
+  textarea.task{ min-height:54px; }
+  .btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
+
+  .log{
+    background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:11px;
+    padding:10px; height:230px; overflow-y:auto; font-family:var(--mono); font-size:12px;
+    display:flex; flex-direction:column; gap:6px; line-height:1.45;
+  }
+  body:not(.dark-mode) .log{ background:var(--panel2); }
+  .log .entry{ white-space:pre-wrap; word-break:break-word; }
+  .log .lbl{ font-weight:700; margin-right:5px; }
+  .log .sys{ color:var(--muted); }
+  .log .user{ color:var(--text); }
+  .log .assistant{ color:#2ECFA3; }
+  .log .tool{ color:#E8B84B; }
+  .log .toolres{ color:#6AABFF; }
+  .log .incoming{ color:#FF8C5A; }
+  .log .outgoing{ color:#C084FC; }
+  .log .error{ color:var(--danger); }
+
+  .msg-row{ display:flex; gap:6px; }
+  .msg-row input{ flex:1; }
+  .footer-note{
+    position:relative; z-index:1;
+    color:var(--muted); font-size:12px; padding:0 28px 30px; max-width:760px;
+  }
+  .empty{
+    border:1px dashed var(--border); border-radius:16px; padding:40px;
+    text-align:center; color:var(--muted); grid-column:1/-1; background:var(--panel);
+  }
+
+
+  /* ---- special model panels ---- */
+  .special-panel{
+    border-radius:10px; padding:10px 12px;
+    border:1px solid var(--border);
+    display:flex; flex-direction:column; gap:8px;
+    animation:cardIn .25s ease both;
+  }
+  .special-panel.whisper-panel{ background:rgba(79,124,255,0.07); border-color:rgba(79,124,255,0.3); }
+  .special-panel.canopy-panel{ background:rgba(155,93,229,0.07); border-color:rgba(155,93,229,0.3); }
+  .special-panel label{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  .panel-title{ font-size:12px; font-weight:700; color:var(--blue); margin-bottom:2px; }
+  .canopy-panel .panel-title{ color:var(--purple); }
+  .audio-drop{
+    border:2px dashed rgba(79,124,255,0.4); border-radius:10px;
+    padding:18px; text-align:center; cursor:pointer;
+    color:var(--muted); font-size:12px; transition:border-color .2s, background .2s;
+  }
+  .audio-drop:hover{ border-color:var(--blue); background:rgba(79,124,255,0.06); }
+  .audio-drop.has-file{ border-color:var(--blue); color:var(--blue); background:rgba(79,124,255,0.09); }
+  .whisper-result{ font-family:var(--mono); font-size:12px; background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:8px; min-height:54px; white-space:pre-wrap; word-break:break-word; color:var(--text); }
+  .canopy-controls{ display:flex; flex-direction:column; gap:6px; }
+  .canopy-voices{ display:flex; gap:6px; flex-wrap:wrap; }
+  .voice-btn{ padding:5px 10px; font-size:11px; border-radius:8px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--panel2); color:var(--text); transition:.15s; }
+  .voice-btn.active{ background:var(--purple); border-color:var(--purple); color:#fff; }
+  .canopy-result audio{ width:100%; margin-top:4px; border-radius:8px; }
+  .speed-row{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
+  .speed-row input[type=range]{ flex:1; }
+
+  ::-webkit-scrollbar{ width:6px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--border); border-radius:6px; }
+</style>
+</head>
+<body>
+
+<div id="meshBg">
+  <div id="darkGrad"></div>
+  <div class="mesh-blob mb1"></div>
+  <div class="mesh-blob mb2"></div>
+  <div class="mesh-blob mb3"></div>
+  <div class="mesh-blob mb4"></div>
+</div>
+
+<div id="introOverlay">
+  <div class="orb-wrap">
+    <div class="orb-glow"></div>
+    <div class="orb"></div>
+  </div>
+  <p class="intro-text">Запускаем агентскую панель…</p>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="ring-wrap">
+    <div class="ring-glow"></div>
+    <div class="ring"></div>
+    <div class="ring-inner">
+      <div class="ring-inner-dot"></div>
+    </div>
+  </div>
+  <h1 class="hero-title">Agendaa</h1>
+  <p class="hero-sub">Groq · несколько независимых ИИ-агентов</p>
+  <p class="hero-desc">
+    У каждого агента — свой Groq API-ключ, своя модель и своя задача. Можно запустить всех одной общей задачей
+    или дать каждому отдельную. Агенты умеют выполнять JS-код и могут просить друг друга о помощи
+    (инструмент «написать другому агенту»). Ключи и история хранятся только в памяти браузера
+    и никуда не отправляются, кроме прямых запросов к api.groq.com.
+  </p>
+</div>
+
+<!-- CONTROLS -->
+<div class="controlbar">
+  <div class="global-row">
+    <div class="field">
+      <label>Общая задача для всех агентов</label>
+      <textarea id="globalTask" class="global-task" placeholder="Например: разберитесь, кто чем занимается…"></textarea>
+    </div>
+    <button class="primary" id="startAllBtn">🚀 Запустить всех</button>
+    <button class="danger" id="stopAllBtn">⏸ Остановить всех</button>
+    <div class="field">
+      <label>Общий API-ключ (Groq)</label>
+      <input id="globalKey" type="password" placeholder="gsk_..." style="width:210px">
+    </div>
+    <button id="applyKeyBtn">Применить ключ ко всем</button>
+    <button id="addAgentBtn">+ Добавить агента</button>
+  </div>
+</div>
+
+<div class="board" id="board"></div>
+
+<p class="footer-note">
+  Подсказка: если запрос к Groq не проходит из-за ошибки сети/CORS — попробуй другой браузер или временно
+  отключить блокировщики запросов. Файл полностью статический, работает прямо из браузера, без сервера.
+</p>
+
+<button id="themeToggle" title="Переключить тему">🌙</button>
+
+<script>
+const PALETTE = ['#4F7CFF','#9B5DE5','#FF6F91','#1E9E8B','#E08B1D','#3FA85E','#6F86FF','#C0469B'];
+const MODEL_SUGGESTIONS = [
+  'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+  'meta-llama/llama-4-scout-17b-16e-instruct',
+  'meta-llama/llama-prompt-guard-2-22m',
+  'meta-llama/llama-prompt-guard-2-86m',
+  'qwen/qwen3-32b',
+  'qwen/qwen3.6-27b',
+  'deepseek-r1-distill-llama-70b',
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
+  'openai/gpt-oss-safeguard-20b',
+  'groq/compound',
+  'groq/compound-mini',
+  'canopylabs/orpheus-arabic-saudi',
+  'canopylabs/orpheus-v1-english',
+  'whisper-large-v3'
+];
+const WHISPER_MODEL = 'whisper-large-v3';
+const CANOPY_MODELS = ['canopylabs/orpheus-arabic-saudi','canopylabs/orpheus-v1-english'];
+const MAX_TOOL_ITERS = 12;
+
+let agentSeq = 0;
+const agents = [];
+
+const board = document.getElementById('board');
+const datalistId = 'model-suggestions';
+(function initDatalist(){
+  const dl = document.createElement('datalist');
+  dl.id = datalistId;
+  MODEL_SUGGESTIONS.forEach(m=>{
+    const opt = document.createElement('option');
+    opt.value = m;
+    dl.appendChild(opt);
+  });
+  document.body.appendChild(dl);
+})();
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function createAgent(name){
+  agentSeq++;
+  const color = PALETTE[(agentSeq-1) % PALETTE.length];
+  const agent = {
+    id:'a'+agentSeq, name: name || ('Агент '+agentSeq),
+    key:'', model:'', color,
+    history:[], inbox:[], running:false, pendingInitialTask:null, els:{}
+  };
+  agents.push(agent);
+  renderAgent(agent);
+  return agent;
+}
+
+function renderAgent(agent){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.setProperty('--agent-color', agent.color);
+  card.innerHTML = `
+    <div class="accent-line"></div>
+    <div class="card-head">
+      <div class="dot" style="background:${agent.color}"></div>
+      <input class="name-input" value="${escapeAttr(agent.name)}" />
+      <span class="status-text">ожидание</span>
+      <button class="remove-btn" title="Удалить агента">✕</button>
+    </div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="field">
+          <label>API-ключ (Groq)</label>
+          <input type="password" placeholder="gsk_..." />
+        </div>
+        <div class="field">
+          <label>Модель</label>
+          <input list="${datalistId}" placeholder="llama-3.3-70b-versatile" class="modelInput" />
+        </div>
+      </div>
+      <div class="special-section"></div>
+      <div class="field chat-task-field">
+        <label>Задача / системная роль этого агента</label>
+        <textarea class="task" placeholder="Например: ты отвечаешь за анализ данных. Жди задачу от коллег или пользователя."></textarea>
+      </div>
+      <div class="btn-row chat-btns">
+        <button class="primary startBtn">▶ Старт</button>
+        <button class="danger stopBtn" disabled>⏸ Стоп</button>
+        <button class="ghost small clearBtn">Очистить лог</button>
+      </div>
+      <div class="log chat-log"></div>
+      <div class="msg-row chat-msg">
+        <input class="msgInput" placeholder="Написать агенту во время работы..." />
+        <button class="small sendMsgBtn">Отправить</button>
+      </div>
+    </div>
+  `;
+  board.appendChild(card);
+
+  agent.els.card = card;
+  agent.els.accentLine = card.querySelector('.accent-line');
+  agent.els.dot = card.querySelector('.dot');
+  agent.els.nameInput = card.querySelector('.name-input');
+  agent.els.statusText = card.querySelector('.status-text');
+  agent.els.removeBtn = card.querySelector('.remove-btn');
+  agent.els.keyInput = card.querySelectorAll('input')[1];
+  agent.els.modelInput = card.querySelector('.modelInput');
+  agent.els.specialSection = card.querySelector('.special-section');
+  agent.els.chatTaskField = card.querySelector('.chat-task-field');
+  agent.els.chatBtns = card.querySelector('.chat-btns');
+  agent.els.chatLog = card.querySelector('.chat-log');
+  agent.els.chatMsg = card.querySelector('.chat-msg');
+  agent.els.taskInput = card.querySelector('.task');
+  agent.els.startBtn = card.querySelector('.startBtn');
+  agent.els.stopBtn = card.querySelector('.stopBtn');
+  agent.els.clearBtn = card.querySelector('.clearBtn');
+  agent.els.log = card.querySelector('.log');
+  agent.els.msgInput = card.querySelector('.msgInput');
+  agent.els.sendMsgBtn = card.querySelector('.sendMsgBtn');
+
+  agent.els.nameInput.addEventListener('input', e=>{ agent.name = e.target.value.trim() || agent.name; });
+  agent.els.keyInput.addEventListener('input', e=>{ agent.key = e.target.value.trim(); });
+  agent.els.modelInput.addEventListener('input', e=>{
+    agent.model = e.target.value.trim();
+    updateSpecialPanel(agent);
+  });
+  agent.els.removeBtn.addEventListener('click', ()=>{
+    agent.running = false;
+    card.remove();
+    const idx = agents.indexOf(agent);
+    if(idx>-1) agents.splice(idx,1);
+    maybeShowEmpty();
+  });
+  agent.els.startBtn.addEventListener('click', ()=>startAgent(agent, agent.els.taskInput.value.trim()));
+  agent.els.stopBtn.addEventListener('click', ()=>stopAgent(agent));
+  agent.els.clearBtn.addEventListener('click', ()=>{ agent.els.log.innerHTML=''; });
+  agent.els.sendMsgBtn.addEventListener('click', ()=>{
+    const v = agent.els.msgInput.value.trim();
+    if(!v) return;
+    agent.inbox.push({from:'Пользователь', text:v});
+    logMsg(agent,'user','(вручную во время работы): '+v);
+    agent.els.msgInput.value='';
+    if(!agent.running) logMsg(agent,'sys','Агент не запущен — сообщение будет обработано после старта.');
+  });
+  maybeShowEmpty();
+}
+
+
+function isWhisper(model){ return model === WHISPER_MODEL; }
+function isCanopy(model){ return CANOPY_MODELS.includes(model); }
+
+const CANOPY_VOICES = ['talia','dan','liam','amy','ethan'];
+
+function updateSpecialPanel(agent){
+  const m = agent.model;
+  const sec = agent.els.specialSection;
+  const isW = isWhisper(m);
+  const isC = isCanopy(m);
+  // show/hide chat parts
+  agent.els.chatTaskField.style.display = (isW||isC)?'none':'';
+  agent.els.chatBtns.style.display = (isW||isC)?'none':'';
+  agent.els.chatLog.style.display = (isW||isC)?'none':'';
+  agent.els.chatMsg.style.display = (isW||isC)?'none':'';
+
+  sec.innerHTML = '';
+  if(isW){
+    sec.innerHTML = `
+      <div class="special-panel whisper-panel">
+        <div class="panel-title">🎙 Whisper — распознавание речи</div>
+        <label>Загрузить аудио файл</label>
+        <div class="audio-drop" id="audioDrop_${agent.id}">
+          <div>Нажмите или перетащите аудио файл сюда</div>
+          <div style="font-size:11px;margin-top:4px;opacity:.6">mp3 · mp4 · wav · ogg · m4a · flac · webm</div>
+        </div>
+        <label>Язык (необязательно)</label>
+        <input type="text" placeholder="ru / en / ar — оставь пустым для автоопределения" id="whisperLang_${agent.id}" style="font-size:12px"/>
+        <button class="primary small" id="whisperRunBtn_${agent.id}" disabled>▶ Транскрибировать</button>
+        <label>Результат</label>
+        <div class="whisper-result" id="whisperResult_${agent.id}">Здесь появится транскрипция...</div>
+      </div>`;
+    setupWhisper(agent);
+  } else if(isC){
+    const voices = CANOPY_VOICES.map(v=>`<button class="voice-btn${v==='talia'?' active':''}" data-voice="${v}">${v}</button>`).join('');
+    sec.innerHTML = `
+      <div class="special-panel canopy-panel">
+        <div class="panel-title">🔊 Orpheus TTS — синтез речи</div>
+        <label>Текст для озвучивания</label>
+        <textarea id="canopyText_${agent.id}" style="min-height:64px;font-size:13px" placeholder="Введите текст для синтеза речи..."></textarea>
+        <div class="canopy-controls">
+          <label>Голос</label>
+          <div class="canopy-voices" id="canopyVoices_${agent.id}">${voices}</div>
+          <div class="speed-row">
+            <label style="text-transform:none;letter-spacing:0">Скорость:</label>
+            <input type="range" min="0.5" max="2" step="0.1" value="1" id="canopySpeed_${agent.id}"/>
+            <span id="canopySpeedVal_${agent.id}">1.0×</span>
+          </div>
+        </div>
+        <button class="primary small" id="canopyRunBtn_${agent.id}">▶ Синтезировать</button>
+        <div class="canopy-result" id="canopyResult_${agent.id}"></div>
+      </div>`;
+    setupCanopy(agent);
+  }
+}
+
+function setupWhisper(agent){
+  const id = agent.id;
+  const drop = document.getElementById('audioDrop_'+id);
+  const runBtn = document.getElementById('whisperRunBtn_'+id);
+  const resultEl = document.getElementById('whisperResult_'+id);
+  const langEl = document.getElementById('whisperLang_'+id);
+  let audioFile = null;
+
+  function setFile(file){
+    audioFile = file;
+    drop.textContent = '✓ ' + file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+    drop.classList.add('has-file');
+    runBtn.disabled = false;
+  }
+  drop.addEventListener('click', ()=>{
+    const inp = document.createElement('input');
+    inp.type='file'; inp.accept='audio/*,video/mp4';
+    inp.onchange = e=>{ if(e.target.files[0]) setFile(e.target.files[0]); };
+    inp.click();
+  });
+  drop.addEventListener('dragover', e=>{ e.preventDefault(); drop.style.borderColor='var(--blue)'; });
+  drop.addEventListener('dragleave', ()=>{ drop.style.borderColor=''; });
+  drop.addEventListener('drop', e=>{ e.preventDefault(); drop.style.borderColor=''; if(e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); });
+
+  runBtn.addEventListener('click', async ()=>{
+    if(!audioFile) return;
+    if(!agent.key){ alert('Укажи API-ключ Groq для этого агента.'); return; }
+    runBtn.disabled = true;
+    resultEl.textContent = 'Отправляю файл на Groq...';
+    const fd = new FormData();
+    fd.append('file', audioFile);
+    fd.append('model', WHISPER_MODEL);
+    const lang = langEl.value.trim();
+    if(lang) fd.append('language', lang);
+    fd.append('response_format','verbose_json');
+    try{
+      const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{
+        method:'POST', headers:{'Authorization':'Bearer '+agent.key}, body:fd
+      });
+      if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+': '+t.slice(0,300)); }
+      const data = await res.json();
+      const text = data.text || '(пустой ответ)';
+      resultEl.textContent = text;
+    }catch(e){
+      resultEl.textContent = 'Ошибка: '+e.message;
+    }
+    runBtn.disabled = false;
+  });
+}
+
+function setupCanopy(agent){
+  const id = agent.id;
+  let selectedVoice = 'talia';
+  const voicesEl = document.getElementById('canopyVoices_'+id);
+  const resultEl = document.getElementById('canopyResult_'+id);
+  const runBtn = document.getElementById('canopyRunBtn_'+id);
+  const speedInput = document.getElementById('canopySpeed_'+id);
+  const speedVal = document.getElementById('canopySpeedVal_'+id);
+
+  voicesEl.addEventListener('click', e=>{
+    const btn = e.target.closest('.voice-btn');
+    if(!btn) return;
+    voicesEl.querySelectorAll('.voice-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedVoice = btn.dataset.voice;
+  });
+  speedInput.addEventListener('input', ()=>{ speedVal.textContent = parseFloat(speedInput.value).toFixed(1)+'×'; });
+
+  runBtn.addEventListener('click', async ()=>{
+    if(!agent.key){ alert('Укажи API-ключ Groq.'); return; }
+    const textEl = document.getElementById('canopyText_'+id);
+    const text = textEl.value.trim();
+    if(!text){ alert('Введи текст для синтеза.'); return; }
+    runBtn.disabled = true;
+    resultEl.innerHTML = '<div style="color:var(--muted);font-size:12px">Генерирую аудио...</div>';
+    try{
+      const body = {
+        model: agent.model,
+        input: text,
+        voice: selectedVoice,
+        speed: parseFloat(speedInput.value),
+        response_format: 'mp3'
+      };
+      const res = await fetch('https://api.groq.com/openai/v1/audio/speech',{
+        method:'POST',
+        headers:{'Authorization':'Bearer '+agent.key,'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+': '+t.slice(0,300)); }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      resultEl.innerHTML = `
+        <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Результат</label>
+        <div class="canopy-result">
+          <audio controls src="${url}"></audio>
+          <a href="${url}" download="orpheus-tts.mp3" style="display:block;margin-top:6px;font-size:12px;color:var(--blue)">⬇ Скачать mp3</a>
+        </div>`;
+    }catch(e){
+      resultEl.innerHTML = '<div style="color:var(--danger);font-size:12px">Ошибка: '+escapeHtml(e.message)+'</div>';
+    }
+    runBtn.disabled = false;
+  });
+}
+
+function maybeShowEmpty(){
+  let empty = document.getElementById('emptyState');
+  if(agents.length===0){
+    if(!empty){
+      empty = document.createElement('div');
+      empty.id='emptyState'; empty.className='empty';
+      empty.textContent = 'Нет агентов. Нажми «+ Добавить агента» сверху.';
+      board.appendChild(empty);
+    }
+  } else if(empty){ empty.remove(); }
+}
+
+function escapeAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function logMsg(agent, type, text){
+  const el = document.createElement('div');
+  el.className = 'entry '+type;
+  const labels = {
+    sys:'СИСТЕМА', user:'➤', assistant:agent.name.toUpperCase(), tool:'ВЫЗОВ', toolres:'РЕЗУЛЬТАТ',
+    incoming:'ВХОД', outgoing:'ВЫХОД', error:'ОШИБКА'
+  };
+  el.innerHTML = `<span class="lbl">[${labels[type]||type}]</span>${escapeHtml(text)}`;
+  agent.els.log.appendChild(el);
+  agent.els.log.scrollTop = agent.els.log.scrollHeight;
+}
+
+function setStatus(agent, status){
+  const map = { idle:'ожидание', thinking:'думает...', error:'ошибка', stopped:'остановлен', running:'работает' };
+  agent.els.statusText.textContent = map[status] || status;
+  agent.els.dot.classList.toggle('thinking', status==='thinking');
+  agent.els.dot.style.opacity = (status==='stopped') ? '0.35' : '1';
+  agent.els.accentLine.classList.toggle('active', status==='thinking' || (status==='idle' && agent.running));
+}
+
+function updateButtons(agent){
+  agent.els.startBtn.disabled = agent.running;
+  agent.els.stopBtn.disabled = !agent.running;
+}
+
+function buildSystemPrompt(agent){
+  const others = agents.filter(a=>a!==agent).map(a=>a.name);
+  return `Ты — ИИ-агент по имени "${agent.name}", работающий в многоагентной системе.
+Задача / роль: ${agent.els.taskInput.value.trim() || '(уточняется по ходу работы)'}.
+Коллеги-агенты: ${others.length ? others.join(', ') : '(пока никого)'}.
+Инструменты: run_code (JS-код), message_agent (написать коллеге), finish_task (завершить задачу).
+Действуй самостоятельно, при необходимости делегируй задачи коллегам. Отвечай по-русски.`;
+}
+
+function buildTools(){
+  return [
+    { type:'function', function:{
+      name:'run_code',
+      description:'Выполнить JavaScript-код в песочнице.',
+      parameters:{ type:'object', properties:{ code:{ type:'string' } }, required:['code'] }
+    }},
+    { type:'function', function:{
+      name:'message_agent',
+      description:'Написать другому агенту по его точному имени.',
+      parameters:{ type:'object', properties:{
+        to:{ type:'string' }, message:{ type:'string' }
+      }, required:['to','message'] }
+    }},
+    { type:'function', function:{
+      name:'finish_task',
+      description:'Отметить задачу выполненной.',
+      parameters:{ type:'object', properties:{ summary:{ type:'string' } }, required:['summary'] }
+    }}
+  ];
+}
+
+async function callGroq(agent){
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+agent.key },
+    body: JSON.stringify({
+      model: agent.model, messages: agent.history,
+      tools: buildTools(), tool_choice:'auto', temperature:0.6
+    })
+  });
+  if(!res.ok){ const t = await res.text().catch(()=>''); throw new Error('HTTP '+res.status+': '+t.slice(0,300)); }
+  const data = await res.json();
+  if(!data.choices || !data.choices[0]) throw new Error('Пустой ответ от Groq.');
+  return data.choices[0].message;
+}
+
+const WORKER_SRC = `
+self.onmessage = function(ev){
+  const logs = [];
+  const fakeConsole = { log: function(){
+    const parts = Array.prototype.slice.call(arguments).map(function(a){
+      try { return (typeof a === 'object') ? JSON.stringify(a) : String(a); } catch(e){ return String(a); }
+    });
+    logs.push(parts.join(' '));
+  }};
+  let result, error;
+  try {
+    const fn = new Function('console', ev.data);
+    result = fn(fakeConsole);
+  } catch(e){ error = (e && e.message) ? e.message : String(e); }
+  self.postMessage({ logs: logs, result: (result===undefined ? null : result), error: error || null });
+};
+`;
+
+function runInSandbox(code){
+  return new Promise((resolve)=>{
+    let blob, url, worker;
+    try{
+      blob = new Blob([WORKER_SRC], { type:'application/javascript' });
+      url = URL.createObjectURL(blob);
+      worker = new Worker(url);
+    }catch(e){ resolve('Не удалось создать песочницу: '+e.message); return; }
+    const timer = setTimeout(()=>{
+      try{ worker.terminate(); }catch(e){}
+      try{ URL.revokeObjectURL(url); }catch(e){}
+      resolve('Ошибка: превышено время выполнения (5 сек).');
+    }, 5000);
+    worker.onmessage = function(ev){
+      clearTimeout(timer);
+      try{ worker.terminate(); }catch(e){}
+      try{ URL.revokeObjectURL(url); }catch(e){}
+      const d = ev.data;
+      if(d.error){ let out = 'Ошибка: '+d.error; if(d.logs&&d.logs.length) out+='\nЛоги:\n'+d.logs.join('\n'); resolve(out); }
+      else {
+        let out = '';
+        if(d.logs&&d.logs.length) out+='Логи:\n'+d.logs.join('\n')+'\n';
+        const r = d.result;
+        out += 'Результат: '+(r===null?'(нет return)':(typeof r==='object'?JSON.stringify(r):String(r)));
+        resolve(out);
+      }
+    };
+    worker.onerror = function(e){
+      clearTimeout(timer);
+      try{ worker.terminate(); }catch(err){}
+      try{ URL.revokeObjectURL(url); }catch(err){}
+      resolve('Ошибка воркера: '+e.message);
+    };
+    worker.postMessage(code);
+  });
+}
+
+async function execTool(agent, tc){
+  const name = tc.function.name;
+  let args = {};
+  try{ args = JSON.parse(tc.function.arguments || '{}'); }catch(e){}
+  logMsg(agent,'tool', name+'('+JSON.stringify(args).slice(0,200)+')');
+  if(name==='run_code'){ const out=await runInSandbox(args.code||''); logMsg(agent,'toolres',out); return out; }
+  if(name==='message_agent'){
+    const target = agents.find(a=>a.name.toLowerCase()===String(args.to||'').toLowerCase());
+    if(!target){ const m='Агент "'+args.to+'" не найден. Доступные: '+agents.map(a=>a.name).join(', '); logMsg(agent,'toolres',m); return m; }
+    target.inbox.push({from:agent.name, text:args.message||''});
+    logMsg(agent,'outgoing','→ '+target.name+': '+(args.message||''));
+    logMsg(target,'incoming',agent.name+' → тебе: '+(args.message||''));
+    if(!target.running){ const m='Сообщение в очереди — агент "'+target.name+'" не запущен.'; logMsg(agent,'toolres',m); return m; }
+    const m='Сообщение доставлено агенту '+target.name+'.'; logMsg(agent,'toolres',m); return m;
+  }
+  if(name==='finish_task'){ const m='Задача выполнена: '+(args.summary||'(без описания)'); logMsg(agent,'toolres',m); return 'Принято.'; }
+  return 'Неизвестный инструмент: '+name;
+}
+
+async function stepAgent(agent){
+  let iterations = 0;
+  while(iterations < MAX_TOOL_ITERS && agent.running){
+    iterations++;
+    setStatus(agent,'thinking');
+    let msg;
+    try{ msg = await callGroq(agent); }
+    catch(e){ setStatus(agent,'error'); logMsg(agent,'error',e.message); return; }
+    if(!agent.running) return;
+    if(msg.tool_calls && msg.tool_calls.length){
+      agent.history.push({ role:'assistant', content:msg.content||null, tool_calls:msg.tool_calls });
+      for(const tc of msg.tool_calls){
+        const result = await execTool(agent,tc);
+        agent.history.push({ role:'tool', tool_call_id:tc.id, content:String(result) });
+      }
+      continue;
+    } else {
+      agent.history.push({ role:'assistant', content:msg.content });
+      logMsg(agent,'assistant', msg.content||'(пустой ответ)');
+      setStatus(agent, agent.running?'idle':'stopped');
+      return;
+    }
+  }
+  if(iterations>=MAX_TOOL_ITERS){ logMsg(agent,'sys','Лимит шагов ('+MAX_TOOL_ITERS+'), жду след. сообщения.'); setStatus(agent,'idle'); }
+}
+
+async function runAgentLoop(agent){
+  while(agent.running){
+    if(agent.inbox.length){
+      const m = agent.inbox.shift();
+      agent.history.push({ role:'user', content:'['+m.from+' пишет]: '+m.text });
+      await stepAgent(agent);
+    } else if(agent.pendingInitialTask){
+      const t = agent.pendingInitialTask;
+      agent.pendingInitialTask = null;
+      agent.history.push({ role:'user', content:t });
+      logMsg(agent,'user',t);
+      await stepAgent(agent);
+    } else { await sleep(700); }
+  }
+}
+
+function startAgent(agent, initialTask){
+  if(!agent.key){ alert('Укажи API-ключ для агента "'+agent.name+'".'); return; }
+  if(!agent.model){ alert('Укажи модель для агента "'+agent.name+'".'); return; }
+  if(agent.running) return;
+  agent.running = true;
+  if(agent.history.length===0) agent.history.push({ role:'system', content:buildSystemPrompt(agent) });
+  if(initialTask) agent.pendingInitialTask = initialTask;
+  setStatus(agent,'idle');
+  logMsg(agent,'sys','Агент запущен.');
+  updateButtons(agent);
+  runAgentLoop(agent);
+}
+
+function stopAgent(agent){
+  agent.running = false;
+  setStatus(agent,'stopped');
+  logMsg(agent,'sys','Агент остановлен.');
+  updateButtons(agent);
+}
+
+document.getElementById('addAgentBtn').addEventListener('click', ()=>createAgent());
+document.getElementById('applyKeyBtn').addEventListener('click', ()=>{
+  const k = document.getElementById('globalKey').value.trim();
+  if(!k) return;
+  agents.forEach(a=>{ a.key=k; a.els.keyInput.value=k; });
+});
+document.getElementById('startAllBtn').addEventListener('click', ()=>{
+  const task = document.getElementById('globalTask').value.trim();
+  if(!task){ alert('Впиши общую задачу.'); return; }
+  const skipped = [];
+  agents.forEach(a=>{
+    if(!a.key||!a.model){ skipped.push(a.name); return; }
+    if(!a.els.taskInput.value.trim()) a.els.taskInput.value = task;
+    startAgent(a, task);
+  });
+  if(skipped.length) alert('Пропущены (нет ключа или модели): '+skipped.join(', '));
+});
+document.getElementById('stopAllBtn').addEventListener('click', ()=>agents.forEach(a=>stopAgent(a)));
+
+// theme toggle
+const themeBtn = document.getElementById('themeToggle');
+let isDark = false;
+themeBtn.addEventListener('click', ()=>{
+  isDark = !isDark;
+  document.body.classList.toggle('dark-mode', isDark);
+  themeBtn.textContent = isDark ? '☀️' : '🌙';
+});
+
+for(let i=0;i<4;i++) createAgent();
+
+window.addEventListener('load', ()=>{
+  setTimeout(()=>{
+    const overlay = document.getElementById('introOverlay');
+    if(overlay){ overlay.classList.add('hide'); setTimeout(()=>overlay.remove(), 700); }
+  }, 1500);
+});
+</script>
+</body>
+</html>
